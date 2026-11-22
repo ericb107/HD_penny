@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired, Length, Optional, ValidationError
 def money(minimum):
     def validate(form, field):
         value = field.data
-        if not value.is_finite() or value < minimum or value > Decimal("9999999999.99") or value.as_tuple().exponent < -2:
+        if value is None or not value.is_finite() or value < minimum or value > Decimal("9999999999.99") or value.as_tuple().exponent < -2:
             raise ValidationError("Enter a valid amount with at most two decimal places.")
     return validate
 

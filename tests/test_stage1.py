@@ -86,6 +86,7 @@ def test_authentication_and_product_management(application, client):
 
 @pytest.mark.parametrize("data", [
     {"name": "Tool", "sku": "1", "current_price": "NaN"},
+    {"name": "Tool", "sku": "1", "current_price": "abc"},
     {"name": "Tool", "sku": "1", "current_price": "1.234"},
     {"name": "Tool", "url": "https://www.homedepot.com:bad/item"},
     {"name": "Tool", "url": "https://homedepot.com.attacker.invalid/item"},
