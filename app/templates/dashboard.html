@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h2">Products</h1>
+  <a class="btn btn-primary" href="{{ url_for('main.edit_product') }}">Add product</a>
+</div>
+<div class="alert alert-info">Stage 1: prices are entered manually. No Home Depot data, store inventory, or automatic monitoring is connected.</div>
+<form class="row g-2 mb-4" method="get">
+  <div class="col-md-4"><label class="visually-hidden" for="q">Search name or SKU</label><input id="q" class="form-control" name="q" value="{{ query }}" placeholder="Search name or SKU"></div>
+  <div class="col-md-3"><label class="visually-hidden" for="filter">Filter</label><select id="filter" class="form-select" name="filter">
+    {% for value, label in [('', 'All products'), ('discounted', 'Currently discounted'), ('previously_discounted', 'Previously discounted'), ('returned', 'Returned to original price')] %}
+    <option value="{{ value }}" {% if selected_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></div>
+  <div class="col-md-3"><label class="visually-hidden" for="sort">Sort</label><select id="sort" class="form-select" name="sort">
+    {% for value, label in [('name', 'Name'), ('discount', 'Highest current discount'), ('maximum', 'Highest historical discount'), ('savings', 'Highest savings'), ('price_low', 'Lowest current price'), ('price_high', 'Highest current price'), ('lowest', 'Lowest recorded price')] %}
+    <option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></div>
+  <div class="col-md-2"><button class="btn btn-outline-primary w-100">Apply</button></div>
+</form>
+<div class="row g-3">
+{% for product in products %}
+<div class="col-lg-6"><article class="card h-100"><div class="card-body">
+  <div class="d-flex gap-3">
+    {% if product.image_url %}<img class="product-image" src="{{ product.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+    <div class="flex-grow-1">
+      <h2 class="h5"><a href="{{ url_for('main.product_detail', product_id=product.id) }}">{{ product.name }}</a></h2>
+      <p class="text-secondary mb-2">SKU: {{ product.sku or 'Unknown' }} {% if product.paused %}· Paused{% endif %}</p>
+      <p class="mb-1">Current: {{ '$%.2f'|format(product.current_price) if product.current_price is not none else 'Unknown' }} · Original: {{ '$%.2f'|format(product.original_price) if product.original_price is not none else 'Unknown' }}</p>
+      {% if product.current_discount is not none %}
+      {% set discount = product.current_discount %}
+      <span class="badge text-bg-{{ 'success' if discount >= 50 else 'primary' if discount >= 30 else 'warning' if discount >= 10 else 'secondary' }}">{{ '%.1f'|format(discount) }}% off</span>
+      {% else %}<span class="badge text-bg-secondary">Discount unknown</span>{% endif %}
+      <p class="mb-1 mt-2">Savings: {{ '$%.2f'|format(product.savings) if product.savings is not none else 'Unknown' }} · Max discount: {{ '%.1f%%'|format(product.maximum_discount) if product.maximum_discount is not none else 'Unknown' }}</p>
+      <p class="mb-2">Lowest recorded: {{ '$%.2f'|format(product.lowest_price) if product.lowest_price is not none else 'Unknown' }}</p>
+      <p class="small text-secondary">Store inventory: not connected · Last price entry: {{ product.prices[-1].recorded_at.strftime('%Y-%m-%d %H:%M UTC') if product.prices else 'Never' }}</p>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.edit_product', product_id=product.id) }}">Edit</a>
+      <form class="d-inline" method="post" action="{{ url_for('main.pause_product', product_id=product.id) }}">{{ action_form.hidden_tag() }}<button class="btn btn-sm btn-outline-secondary">{{ 'Resume' if product.paused else 'Pause' }}</button></form>
+    </div>
+  </div>
+</div></article></div>
+{% else %}<p>No products found.</p>{% endfor %}
+</div>
+{% endblock %}

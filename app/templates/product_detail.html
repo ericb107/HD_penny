@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h2">{{ product.name }}</h1>
+<p>SKU: {{ product.sku or 'Unknown' }} · Internet number: {{ product.internet_number or 'Unknown' }} · Model: {{ product.model_number or 'Unknown' }}</p>
+{% if product.url %}<p><a href="{{ product.url }}" rel="noopener noreferrer" target="_blank">View at Home Depot</a></p>{% endif %}
+<p>Original: {{ '$%.2f'|format(product.original_price) if product.original_price is not none else 'Unknown' }} · Current: {{ '$%.2f'|format(product.current_price) if product.current_price is not none else 'Unknown' }} · Historical maximum discount: {{ '%.1f%%'|format(product.maximum_discount) if product.maximum_discount is not none else 'Unknown' }}</p>
+<p class="text-secondary">All observations below are manually entered. Store inventory is not connected.</p>
+<a class="btn btn-outline-primary" href="{{ url_for('main.edit_product', product_id=product.id) }}">Edit</a>
+<form class="d-inline" method="post" action="{{ url_for('main.delete_product', product_id=product.id) }}" onsubmit="return confirm('Delete this product and its history?')">{{ action_form.hidden_tag() }}<button class="btn btn-outline-danger">Delete</button></form>
+<h2 class="h4 mt-4">Price history</h2>
+<table class="table"><thead><tr><th>Recorded (UTC)</th><th>Price</th></tr></thead><tbody>
+{% for entry in product.prices|reverse %}<tr><td>{{ entry.recorded_at.strftime('%Y-%m-%d %H:%M:%S') }}</td><td>${{ '%.2f'|format(entry.price) }}</td></tr>
+{% else %}<tr><td colspan="2">No prices recorded.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}
